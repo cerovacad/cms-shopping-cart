@@ -1,0 +1,11 @@
+{
+  "name": "cmscart",
+  "version": "1.0.0",
+  "main": "app.js",
+  "author": "Nikola Cerovac",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^2.5.8",
+    "express": "^4.16.3"
+  }
+}
