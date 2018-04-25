@@ -1,30 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const Page = require('../models/Page');
+const mkdirp = require('mkdirp');
+const fs = require('fs-extra');
+const resizeImg = require('resize-img');
 
-//GET pages
+//Model
+const Product = require('../models/Product');
+
+//GET products
 
 router.get('/', (req, res) => {
-  Page.find({}).sort({
-    sorting: 1
-  }).exec((err, pages) => {
-    res.render('admin/pages', {
-      pages
-    });
-  })
+  
+  let count;
+
+  Product.count((err, c) => {
+    count = c;
+  });
+  
+  Product.find({}, (err, products) => {
+    if(err){
+      console.log('Error fetching products', err);
+    }else{
+      res.render('admin/products', { products, count });
+    }
+  });
+
 });
 
-//GET add page
+//GET add product
 
-router.get('/add-page', (req, res) => {
+router.get('/add-product', (req, res) => {
   const title = '';
   const slug = '';
-  const content = '';
+  const desc = '';
+  const category = '';
+  const price = '';
+  const image = '';
 
-  res.render('admin/add-page', {
+  res.render('admin/add-product', {
     title,
     slug,
-    content
+    desc,
+    category,
+    price,
+    image
   });
 
 });

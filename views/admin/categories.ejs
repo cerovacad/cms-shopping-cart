@@ -1,0 +1,26 @@
+<%- include('../_layouts/adminHeader') %>
+
+  <h2 class="page-title">Categories</h2>
+  <a href="/admin/categories/add-category" class='btn btn-primary'>Add new category</a>
+  <br>
+  <br>
+  <table class="table table-striped sorting">
+    <thead>
+      <tr> 
+        <th>Category</th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.forEach((category) => { %>
+        <tr id='id_<%= category._id %>' class='<%= category.slug %>'>
+          <td><%= category.title %></td>
+          <td><a href="/admin/categories/edit-category/<%= category.id %>">Edit</a></td>
+          <td><a class='confirmDeletionCat' href="/admin/categories/delete-category/<%= category._id %>">Delete</a></td>
+          </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  
+  <%- include('../_layouts/adminFooter') %>

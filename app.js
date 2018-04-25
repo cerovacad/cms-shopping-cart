@@ -8,6 +8,7 @@ const config = require('./config/database');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const expressValidator = require('express-validator');
+const fileUpload = require('express-fileupload');
 
 //connect to db
 mongoose.connect(config.database);
@@ -19,6 +20,8 @@ db.once('open', () => {
 
 
 //middleware
+app.use(fileUpload()); // must be used before body=parser
+
 app.use(bodyParser.urlencoded({
   extended: false
 }));
@@ -56,9 +59,13 @@ app.locals.errors = null;
 //routes
 const pages = require('./routes/pages');
 const adminPages = require('./routes/admin_pages');
+const adminCategories = require('./routes/admin_categories');
+const adminProducts = require('./routes/admin_products');
 
-app.use('/admin', adminPages);
 app.use('/', pages);
+app.use('/admin', adminPages);
+app.use('/admin/categories/', adminCategories);
+app.use('/admin/products', adminProducts);
 
 //port
 const port = 3000;

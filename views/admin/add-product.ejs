@@ -1,0 +1,44 @@
+<%- include('../_layouts/adminHeader') %>
+
+  <h2 class="page-title">Add new product</h2>
+  <a href="/admin" class='btn btn-primary'>Back to products</a>
+  <br>
+  <br>
+
+  <form method="POST" action="/admin/products/add-product">
+
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input class='form-control' type="text" name='title' value='<%= title %>' placeholder='Title'>
+    </div>
+
+    <div class="form-group">
+      <label for="slug">Slug</label>
+      <input class='form-control' type="text" name='slug' value='<%= slug %>' placeholder='Slug'>
+    </div>
+
+    <div class="form-group">
+      <label for="desc">Description</label>
+      <textarea class='form-control' id='ta' name='desc' value='<%= desc %>' placeholder='Description' cols='30' rows='5'></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category</label>
+      <input class='form-control' type="text" name='category' value='<%= slug %>' placeholder='Category'>
+    </div>
+
+    <div class="form-group">
+      <label for="price">Price</label>
+      <input class='form-control' type="number" name='price' value='<%= price %>' placeholder='Price'>
+    </div>
+
+    <div class="form-group">
+      <label for="image">Image</label>
+      <input class='form-control' type="text" name='image' value='<%= image %>' placeholder='Image'>
+    </div>
+
+    <button class="btn btn-defaults">Submit</button>
+
+  </form>
+
+  <%- include('../_layouts/adminFooter') %>
