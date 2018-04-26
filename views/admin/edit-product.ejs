@@ -1,11 +1,11 @@
 <%- include('../_layouts/adminHeader') %>
 
-  <h2 class="page-title">Add new product</h2>
+  <h2 class="page-title">Edit product</h2>
   <a href="/admin/products" class='btn btn-primary'>Back to products</a>
   <br>
   <br>
 
-  <form method="POST" action="/admin/products/add-product" enctype="multipart/form-data">
+  <form method="POST" action="/admin/products/edit-product/<%= id %>" enctype="multipart/form-data">
 
     <div class="form-group">
       <label for="title">Title</label>
@@ -19,16 +19,22 @@
 
     <div class="form-group">
       <label for="desc">Description</label>
-      <textarea class='form-control' id='ta' name='desc' value='<%= desc %>' placeholder='Description'></textarea>
+      <textarea class='form-control' id='ta' name='desc' value='<%= desc %>' placeholder='Description' cols='30' rows='5'><%= desc %></textarea>
     </div>
 
     <div class="form-group">
       <label for="category">Category</label>
       <select class="form-control" id="category" name="category">
-        <!-- <option value="" disabled selected>Select category</option> default='Select category' -->
         <% categories.forEach((category) => { %>
-            <option value="<%= category.title %>"><%= category.title %></option>
-        <% }); %>
+          <% if(category.title === defaultCat){ %>
+            <option selected value="<%= category.title %>">
+              <%= category.title %>
+            </option>
+          <% }else{ %>
+            <option value="<%= category.title %>">
+              <%= category.title %>
+            </option>
+          <% }}); %>
       </select>
     </div>
 
@@ -37,19 +43,27 @@
       <input class='form-control' type="number" name='price' value='<%= price %>' placeholder='Price'>
     </div>
 
-    <!-- class="custom-file-label" -->
-    <div class="custom-file">
-      <label for="image">Image</label>
-      <input type="file" class="form-control" name="image" id="img">
-      <img src="/images/noimage.png" id="imgPrev"/>
+    <div class="form-group">
+      <label for="image">Current image</label><br>
+            <% if(image == ''){ %>
+              <img class='products-thumb' id='imgPrev' src='/images/noimage.png' alt='product-image'/>
+            <% }else{ %>
+              <img class='products-thumb' id='imgPrev' src='/product_images/<%= id %>/<%= image %>' alt='product-image'/>
+            <% } %>
     </div>
-    <br><br>
+    
+    <div class="custom-file">
+      <label for="image">Upload image</label>
+      <input type="file" class="form-control" name="image" id="img">
+    </div>
+    <br>
+    <br>
 
-    <button class="btn btn-defaults img-spacing" onclick="submit()">Submit</button>
+    <button class="btn btn-defaults img-spacing">Submit</button>
 
     <script>
-      const readURL = (input) => { 
-        if(input[0].files && input[0].files[0]) {
+      const readURL = (input) => {
+        if (input[0].files && input[0].files[0]) {
           const reader = new FileReader;
           reader.onload = (e) => {
             $("#imgPrev").attr('src', e.target.result).width(100).height(100);
@@ -62,10 +76,8 @@
       $("#img").change(() => {
         readURL($("#img"));
       });
-
     </script>
 
   </form>
 
   <%- include('../_layouts/adminFooter') %>
-

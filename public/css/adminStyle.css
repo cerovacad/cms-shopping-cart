@@ -5,3 +5,19 @@
 .ui-state-highlight {
   border: 3px dashed #ccc;
 }
+
+/* styles */
+#imgPrev {
+  margin: 1.25em 0;
+  height: 6.25em;
+  width: 6.25em;
+}
+
+.img-spacing {
+  margin-top: 2em;
+}
+
+.products-thumb{
+  height: 6.25em;
+  width: 6.25em;
+}

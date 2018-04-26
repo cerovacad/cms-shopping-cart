@@ -1,7 +1,7 @@
 <%- include('../_layouts/adminHeader') %>
 
 <h2 class="page-title">Products</h2>
-<a href="/admin/add-page" class='btn btn-primary'>Add product</a>
+<a href="/admin/products/add-product" class='btn btn-primary'>Add product</a>
 <br>
 <br>
 <% if(count > 0){ %>
@@ -12,7 +12,7 @@
         <th>Product</th>
         <th>Price</th>
         <th>Category</th>
-        <th>Product image</th>
+        <th>Image</th>
         <th>Edit</th>
         <th>Delete</th>
       </tr>
@@ -25,13 +25,13 @@
           <td><%= product.category %></td>
           <td>
             <% if(product.image == ''){ %>
-              <img src='/images/noimage.png' alt='product-image'/>
+              <img class='products-thumb' src='/images/noimage.png' alt='product-image'/>
             <% }else{ %>
-              <img src='/product_images/<%= product.id %>/<%= product.image %>' alt='product-image'/>
+              <img class='products-thumb' src='/product_images/<%= product.id %>/<%= product.image %>' alt='product-image'/>
             <% } %>
           </td>
           <td><a href="/admin/products/edit-product/<%= product.id %>">Edit</a></td>
-          <td><a class='confirmDeletion' href="/admin/products/delete-product/<%= product._id %>">Delete</a></td>  
+          <td><a class='confirmDeletionProd' href="/admin/products/delete-product/<%= product._id %>">Delete</a></td>  
           </tr>
       <% }); %>
     </tbody>

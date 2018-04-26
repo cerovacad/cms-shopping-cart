@@ -6,22 +6,26 @@ const resizeImg = require('resize-img');
 
 //Model
 const Product = require('../models/Product');
+const Category = require('../models/Category');
 
 //GET products
 
 router.get('/', (req, res) => {
-  
+
   let count;
 
   Product.count((err, c) => {
     count = c;
   });
-  
+
   Product.find({}, (err, products) => {
-    if(err){
+    if (err) {
       console.log('Error fetching products', err);
-    }else{
-      res.render('admin/products', { products, count });
+    } else {
+      res.render('admin/products', {
+        products,
+        count
+      });
     }
   });
 
@@ -33,28 +37,32 @@ router.get('/add-product', (req, res) => {
   const title = '';
   const slug = '';
   const desc = '';
-  const category = '';
   const price = '';
-  const image = '';
 
-  res.render('admin/add-product', {
-    title,
-    slug,
-    desc,
-    category,
-    price,
-    image
+  Category.find({}, (err, categories) => {
+    res.render('admin/add-product', {
+      title,
+      slug,
+      desc,
+      categories,
+      price
+    });
   });
 
 });
 
-//POST add page
+//POST add product
 
-router.post('/add-page', (req, res) => {
+router.post('/add-product', (req, res) => {
+
+  const image = typeof req.files.image !== "undefined" ? req.files.image.name : "";
 
   //validation
   req.checkBody('title', 'Title must have a value').notEmpty();
-  req.checkBody('content', 'Content must have a value').notEmpty();
+  req.checkBody('desc', 'Content must have a value').notEmpty();
+  req.checkBody('price', 'Price must have a value').isDecimal();
+  req.checkBody('image', 'You must upload an image').isImage(image);
+
 
   //extracting data
   const title = req.body.title;
@@ -62,43 +70,80 @@ router.post('/add-page', (req, res) => {
   if (slug === '') {
     slug = req.body.title.replace(/\s+/g, '-').toLowerCase();
   }
-  const content = req.body.content;
+  const desc = req.body.desc;
+  const price = req.body.price;
+  const category = req.body.category;
   //validate req.body
   const errors = req.validationErrors();
 
   if (errors) {
-    res.render('admin/add-page', {
-      errors,
-      title,
-      slug,
-      content
+    Category.find({}, (err, categories) => {
+      res.render('admin/add-product', {
+        errors,
+        title,
+        slug,
+        desc,
+        categories,
+        price
+      });
     });
   } else {
-    Page.findOne({ //check for unique slug
+    Product.findOne({
       slug
-    }, (err, page) => {
-      if (page) {
+    }, (err, product) => {
+      if (product) {
         req.flash('danger', 'Page slug exists, please choose another one');
-        res.render('admin/add-page', {
-          title,
-          slug,
-          content
+        Category.find({}, (err, categories) => {
+          res.render('admin/add-product', {
+            errors,
+            title,
+            slug,
+            desc,
+            categories,
+            price
+          });
         });
       } else {
-
-        const page = new Page({
+        const product = new Product({
           title,
           slug,
-          content,
-          sorting: 100
+          desc,
+          category,
+          price,
+          image
         });
 
-        page.save((err) => {
+        product.save((err) => {
           if (err) {
             console.log(err, 'Error saving to database');
-          }else {
+          } else {
+
+            mkdirp('public/product_images/' + product._id, (err) => {
+              return console.log(err);
+            });
+
+            mkdirp('public/product_images/' + product._id + '/gallery', (err) => {
+              return console.log(err);
+            });
+
+            mkdirp('public/product_images/' + product._id + '/gallery/thumbs', (err) => {
+              return console.log(err);
+            });
+
+            //UPLOADING IMAGE
+            if (image != '') {
+              const productImage = req.files.image;
+              const path = 'public/product_images/' + product._id + '/' + image;
+              productImage.mv(path, (err) => {
+                if (err) {
+                  console.log('MV', err);
+                }
+              });
+            }
+
             req.flash('success', 'Saved to dabase');
-            res.redirect('/admin');
+            res.redirect('/admin/products');
+
           }
         });
 
@@ -108,134 +153,157 @@ router.post('/add-page', (req, res) => {
 
 });
 
-//POST reorder pages
+//GET edit product
+router.get('/edit-product/:id', (req, res) => {
 
-router.post('/reorder-pages', (req, res) => {
-  
-  const ids = req.body['id[]'];
-  let count = 0;
+  Product.findById(req.params.id, (err, product) => {
 
-  for (let i = 0; i < ids.length; i++) {
-    let id = ids[i];
-    count++;
-    //wraping is clojure because of node async
-    ((count) => {
-      Page.findById(id, (err, page) => {
-        if (err) {
-          console.log(err, 'Error finding id');
-        } else {
-          page.sorting = count;
-          page.save((err) => {
-            if (err) {
-              console.log(err, 'Error reordering');
-            }
-          })
-        }
-      });
-    })(count);
-
-  }
-
-});
-
-
-//GET edit page
-
-router.get('/edit-page/:id', (req, res) => {
-
-  Page.findById(req.params.id, (err, page) => {
-    
-    if(err){
+    if (err) {
       console.log(err, 'Error saving edited page to database');
     }
 
-    res.render('admin/edit-page', {
-      title: page.title,
-      slug: page.slug,
-      content: page.content,
-      id: page._id
+    Category.find({}, (err, categories) => {
+
+      const galleryDir = 'public/product_images/' + product._id + '/gallery';
+      let galleryImgs = null;
+
+      fs.readdir(galleryDir, (err, files) => {
+        if (err) {
+          console.log(err);
+        } else {
+          galleryImgs = files;
+
+          res.render('admin/edit-product', {
+            title: product.title,
+            slug: product.slug,
+            desc: product.desc,
+            price: product.price,
+            categories: categories,
+            defaultCat: product.category,
+            id: product._id,
+            galleryImgs,
+            image: product.image
+          });
+
+        }
+      });
     });
 
   });
 
 });
 
-//POST edit page
+//POST edit product
+router.post('/edit-product/:id', (req, res) => {
 
-router.post('/edit-page/:id', (req, res) => {
+  const image = typeof req.files.image !== "undefined" ? req.files.image.name : "";
 
   //validation
   req.checkBody('title', 'Title must have a value').notEmpty();
-  req.checkBody('content', 'Content must have a value').notEmpty();
+  req.checkBody('desc', 'Content must have a value').notEmpty();
+  req.checkBody('price', 'Price must have a value').isDecimal();
+  req.checkBody('image', 'You must upload an image').isImage(image);
 
-  //extracting data 
+
+  //extracting data
   const title = req.body.title;
   let slug = req.body.slug.replace(/\s+/g, '-').toLowerCase();
   if (slug === '') {
     slug = req.body.title.replace(/\s+/g, '-').toLowerCase();
   }
-  const content = req.body.content;
+  const desc = req.body.desc;
+  const price = req.body.price;
+  const category = req.body.category;
+  const defaultCat = req.body.defaultCat;
   const id = req.params.id;
-  
 
+
+  //validate req.body
   const errors = req.validationErrors();
 
   if (errors) {
-    res.render('admin/edit-page', {
-      errors,
-      title,
-      slug,
-      content,
-      id
+    Category.find({}, (err, categories) => {
+      res.render('admin/edit-product', {
+        errors,
+        title,
+        slug,
+        desc,
+        categories,
+        defaultCat,
+        price,
+        id
+      });
     });
   } else {
-    Page.findOne({slug, _id:{ $ne: id }}, (err, page) => {
-      if (page) {
+    Product.findOne({
+      slug,
+      _id: {
+        $ne: id
+      }
+    }, (err, product) => {
+      if (product) {
         req.flash('danger', 'Page slug exists, please choose another one');
-        res.render('admin/edit-page', {
-          title,
-          slug,
-          content,
-          id
+        Category.find({}, (err, categories) => {
+          res.render('admin/edit-product', {
+            errors,
+            title,
+            slug,
+            desc,
+            categories,
+            defaultCat,
+            price,
+            id
+          });
         });
       } else {
-        
-        Page.findById(id, (err, page) => {
-          if(err){
+
+        Product.findById(id, (err, product) => {
+          if (err) {
             console.log(err, 'Error editing page');
-          }else{
-            page.title = title;
-            page.slug = slug;
-            page.content = content;
-        
-            page.save((err) => {
+          } else {
+
+            product.title = title;
+            product.slug = slug;
+            product.desc = desc;
+            product.price = price;
+            product.category = category;
+
+            if (image !== '') {
+              const productImage = req.files.image;
+              const path = 'public/product_images/' + product._id + '/' + image;
+              productImage.mv(path, (err) => {
+                if (err) {
+                  console.log('MV', err);
+                }
+              });
+              product.image = image;
+            }
+
+            product.save((err) => {
               if (err) {
-                console.log(err, 'Error saving edited page to database');
+                console.log(err, 'Error saving to database');
               } else {
-                req.flash('success', 'Saved to dabase');
-                res.redirect('/admin');
+
+
+                res.redirect('/admin/products');
               }
             });
           }
-
         });
-
       }
     });
   }
-
 });
 
 //GET delete page
 
-router.get('/delete-page/:id', (req, res) => {
-  Page.findByIdAndRemove(req.params.id, (err) => {
-    if(err){
+router.get('/delete-product/:id', (req, res) => {
+  Product.findByIdAndRemove(req.params.id, (err) => {
+    if (err) {
       console.log('Error finding page to delete', err);
-    }
-    else{
+    } else {
       req.flash('success', 'Page deleted');
-      res.redirect('/admin');  
+      res.redirect('/admin/products');
     }
 
   });

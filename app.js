@@ -36,7 +36,25 @@ app.use(session({
   }
 }));
 
-app.use(expressValidator());
+app.use(expressValidator({
+  customValidators: {
+    isImage: (value, filename)=> {
+      const ext = (path.extname(filename)).toLowerCase();
+      switch(ext){
+        case '.jpg':
+          return 'jpg'; 
+        case '.jpeg':
+          return 'jpeg';
+        case '.png':
+          return 'png';
+        case '':
+          return 'jpg';
+        default:
+          return false;
+      }
+    }
+  }
+}));
 
 app.use(require('connect-flash')());
 app.use(function (req, res, next) {

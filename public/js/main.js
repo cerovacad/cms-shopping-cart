@@ -16,5 +16,11 @@ $(() => {
     }
   });
 
+  $('a.confirmDeletionProd').on('click', () => {
+    if(!confirm('Are you sure you want to delete this product?')){
+      return false;
+    }
+  });
+
 
 });
